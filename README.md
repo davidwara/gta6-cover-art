@@ -1,8 +1,8 @@
 # gta6-cover-art
 
-[![make.fun competition](https://make.fun/badge/competition/gta6-cover-art-01)](https://make.fun/c/gta6-cover-art-01)
-[![make.fun rank](https://make.fun/badge/rank/davidwara/gta6-cover-art)](https://make.fun/c/gta6-cover-art-01)
-[![make.fun reward](https://make.fun/badge/reward/davidwara/gta6-cover-art)](https://make.fun/c/gta6-cover-art-01)
+[![make.fun · gta6-cover-art-01](https://make.fun/badge/gta6-cover-art-01.svg)](https://make.fun/bounty/gta6-cover-art-01?utm_source=github&utm_medium=readme&utm_campaign=gta6-cover-art-01)
+[![rank](https://make.fun/badge/gta6-cover-art-01/davidwara/gta6-cover-art/rank.svg)](https://make.fun/bounty/gta6-cover-art-01/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=gta6-cover-art-01)
+[![reward](https://make.fun/badge/gta6-cover-art-01/davidwara/gta6-cover-art/reward.svg)](https://make.fun/bounty/gta6-cover-art-01?utm_source=github&utm_medium=readme&utm_campaign=gta6-cover-art-01)
 
 **Vice City Nights** — a web app that turns your photo + caption into GTA 6-style multi-panel cover art and exports it as a PNG to share.
 
