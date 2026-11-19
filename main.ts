@@ -1,85 +1,46 @@
-// Vice City Nights — make.fun entrypoint (Node 22, standard library only).
+// Vice City Nights — hand-in entrypoint (Node 22, standard library only).
 //
-// Copies the static app (app/) and its screenshots (screenshots/) from this
-// repository into the hand-in directory, then writes dossier.json there with
-// buildDossier from ./vendor/makefun-app.ts. Run it as:
+// The app is plain static files a desktop browser loads offline: app/
+// (index.html + ES modules, no library, no network request) and the
+// screenshots/ renders. This program copies both from beside itself to the
+// output directory and writes dossier.json with the vendored make.fun
+// library, the summary the judge reads.
 //
-//   MAKEFUN_OUTPUT_DIR=/tmp/vcn-out node --experimental-strip-types main.ts
-//
-// Outside the grader MAKEFUN_OUTPUT_DIR stands in for /output.
+// Outside the grader's container, MAKEFUN_OUTPUT_DIR stands in for /output:
+//   mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
 
-import { cpSync, existsSync, mkdirSync, readdirSync, statSync, writeFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { cpSync, existsSync, mkdirSync, readdirSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildDossier } from './vendor/makefun-app.ts';
 
-const REPO_ROOT = dirname(fileURLToPath(import.meta.url));
-const OUT_DIR = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
+const here = fileURLToPath(new URL('.', import.meta.url));
+const out = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
 
-const APP_DIR = join(REPO_ROOT, 'app');
-const SHOTS_DIR = join(REPO_ROOT, 'screenshots');
-
-function isImageFile(name: string): boolean {
-  return /\.(png|jpe?g)$/i.test(name);
+mkdirSync(out, { recursive: true });
+cpSync(join(here, 'app'), join(out, 'app'), { recursive: true });
+mkdirSync(join(out, 'screenshots'), { recursive: true });
+if (existsSync(join(here, 'screenshots'))) {
+  cpSync(join(here, 'screenshots'), join(out, 'screenshots'), { recursive: true });
 }
 
-function listShots(): string[] {
-  return listShotsIn(SHOTS_DIR);
+const shotNames = readdirSync(join(out, 'screenshots')).sort();
+if (shotNames.length === 0) {
+  throw new Error('no screenshots in screenshots/ — capture them first (see shots.json)');
 }
+console.log(`handed in: ${shotNames.length} screenshot(s) — ${shotNames.join(', ')}`);
 
-function listShotsIn(dir: string): string[] {
-  if (!existsSync(dir)) return [];
-  return readdirSync(dir)
-    .filter((name) => isImageFile(name))
-    .filter((name) => {
-      const full = join(dir, name);
-      return statSync(full).isFile();
-    })
-    .sort();
-}
-
-function main(): void {
-  if (!existsSync(APP_DIR) || !statSync(APP_DIR).isDirectory()) {
-    throw new Error(`app/ is missing next to main.ts (${APP_DIR})`);
-  }
-
-  const shots = listShots();
-  if (shots.length === 0) {
-    throw new Error(
-      'screenshots/ holds no PNG or JPEG — the hand-in needs 3 or 4 screenshots, ' +
-        'the first by name being the cover',
-    );
-  }
-
-  mkdirSync(OUT_DIR, { recursive: true });
-  cpSync(APP_DIR, join(OUT_DIR, 'app'), { recursive: true });
-  cpSync(SHOTS_DIR, join(OUT_DIR, 'screenshots'), { recursive: true });
-
-  const dossier = buildDossier(OUT_DIR, {
+// The scorer's own caps (from the bounty's gate.json): only text_max_bytes
+// shapes the bytes; the others refuse an entry the scorer would refuse
+// (more than 4 screenshots or one over 256 KiB; more than 993 files in
+// app/ or 48 MiB of app files in all, or a path under app/ over 1000 bytes).
+writeFileSync(
+  join(out, 'dossier.json'),
+  buildDossier(out, {
     text_max_bytes: 163840,
     screenshots: { max: 4, max_bytes: 262144 },
     app_max_files: 993,
     app_max_bytes: 50331648,
     app_path_max_bytes: 1000,
-  });
-  writeFileSync(join(OUT_DIR, 'dossier.json'), dossier);
-
-  // The gate refuses a dossier over 1.5 MiB: fail here instead of at grading.
-  const DOSSIER_MAX_BYTES = 1572864;
-  if (dossier.length > DOSSIER_MAX_BYTES) {
-    throw new Error(`dossier.json is ${dossier.length} bytes, over the ${DOSSIER_MAX_BYTES} cap`);
-  }
-
-  // Confirm the copy landed whole: the hand-in's screenshots must be exactly
-  // the ones this run counted.
-  const copied = listShotsIn(join(OUT_DIR, 'screenshots'));
-  if (copied.length !== shots.length || copied.some((n, i) => n !== shots[i])) {
-    throw new Error('copied screenshots do not match the source screenshots/');
-  }
-
-  console.log(`handed in: ${shots.length} screenshot(s)`);
-  for (const name of shots) console.log(`  screenshot: ${name}`);
-  console.log(`dossier.json: ${dossier.length} bytes`);
-}
-
-main();
+  }),
+);

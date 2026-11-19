@@ -1,18 +1,21 @@
-// Vice City Nights — tiny static server for app/ (development only).
-//
-//   node serve.ts [--port 8080]
-//
-// Serves only files inside app/, with a small MIME table. No network
-// requests are made by the app itself; this server just hands the files out.
+// Vice City Nights — tiny static server for the app/ folder.
+// Node 22, standard library only. Run `node serve.ts` and open
+// http://localhost:8080. `--port <n>` picks a different port.
+// It only ever serves files inside app/; anything else is refused.
 
+import { createReadStream, statSync } from 'node:fs';
 import { createServer } from 'node:http';
-import { existsSync, readFileSync, statSync } from 'node:fs';
 import { extname, join, normalize, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const APP_DIR = resolve(join(fileURLToPath(new URL('.', import.meta.url)), 'app'));
+const root = resolve(fileURLToPath(new URL('./app', import.meta.url)));
 
-const MIME: Record<string, string> = {
+const args = process.argv.slice(2);
+const portFlag = args.indexOf('--port');
+const wanted = portFlag === -1 ? 8080 : Number(args[portFlag + 1]);
+const port = Number.isInteger(wanted) && wanted > 0 && wanted < 65536 ? wanted : 8080;
+
+const MIME = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
   '.mjs': 'text/javascript; charset=utf-8',
@@ -21,51 +24,47 @@ const MIME: Record<string, string> = {
   '.png': 'image/png',
   '.jpg': 'image/jpeg',
   '.jpeg': 'image/jpeg',
+  '.gif': 'image/gif',
   '.webp': 'image/webp',
   '.svg': 'image/svg+xml',
+  '.ico': 'image/x-icon',
   '.woff2': 'font/woff2',
+  '.woff': 'font/woff',
   '.ttf': 'font/ttf',
+  '.otf': 'font/otf',
+  '.txt': 'text/plain; charset=utf-8',
 };
 
-function portFromArgs(): number {
-  const flag = process.argv.indexOf('--port');
-  if (flag >= 0 && process.argv[flag + 1]) {
-    const n = Number(process.argv[flag + 1]);
-    if (Number.isInteger(n) && n > 0 && n < 65536) return n;
-  }
-  const env = Number(process.env.PORT ?? '');
-  if (Number.isInteger(env) && env > 0 && env < 65536) return env;
-  return 8080;
-}
-
-const server = createServer((req, res) => {
-  const rawPath = decodeURIComponent(new URL(req.url ?? '/', 'http://localhost').pathname);
-  const rel = normalize(rawPath).replace(/^(\.\.[/\\])+/, '').replace(/^[/\\]/, '');
-  const file = join(APP_DIR, rel === '' ? 'index.html' : rel);
-
-  // Refuse anything outside app/.
-  if (!file.startsWith(APP_DIR + sep) && file !== APP_DIR) {
-    res.writeHead(403, { 'content-type': 'text/plain' });
-    res.end('forbidden\n');
+createServer((request, response) => {
+  const url = new URL(request.url ?? '/', 'http://localhost');
+  let pathname;
+  try {
+    pathname = decodeURIComponent(url.pathname);
+  } catch {
+    response.writeHead(400).end('bad request');
     return;
   }
-
-  let target = file;
-  if (existsSync(target) && statSync(target).isDirectory()) {
-    target = join(target, 'index.html');
-  }
-  if (!existsSync(target) || !statSync(target).isFile()) {
-    res.writeHead(404, { 'content-type': 'text/plain' });
-    res.end('not found\n');
+  if (pathname.endsWith('/')) pathname += 'index.html';
+  const file = resolve(join(root, normalize(pathname)));
+  if (file !== root && !file.startsWith(root + sep)) {
+    response.writeHead(403).end('forbidden');
     return;
   }
-
-  const type = MIME[extname(target).toLowerCase()] ?? 'application/octet-stream';
-  res.writeHead(200, { 'content-type': type });
-  res.end(readFileSync(target));
-});
-
-const port = portFromArgs();
-server.listen(port, () => {
-  console.log(`Vice City Nights serving app/ at http://localhost:${port}`);
+  let size;
+  try {
+    const stats = statSync(file);
+    if (!stats.isFile()) throw new Error('not a file');
+    size = stats.size;
+  } catch {
+    response.writeHead(404).end('not found');
+    return;
+  }
+  response.writeHead(200, {
+    'content-type': MIME[extname(file).toLowerCase()] ?? 'application/octet-stream',
+    'content-length': size,
+    'cache-control': 'no-store',
+  });
+  createReadStream(file).pipe(response);
+}).listen(port, '127.0.0.1', () => {
+  console.log(`Vice City Nights is on http://localhost:${port}`);
 });
