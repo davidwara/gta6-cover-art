@@ -1,47 +1,46 @@
-// Vice City Nights — boot.
-// Builds the editor state, wires the controls, and paints the first frame.
-// With ?shot=… in the URL it runs the screenshot scene instead of the
-// normal editor start; without it, it loads the sample photos and renders.
+// Vice City Nights — boot (app/src/main.js).
+// Creates the state, wires the editor, renders. With ?shot= in the URL it
+// runs the screenshot scene instead; otherwise it loads the sample photos
+// and renders the editor.
 
-import { SIZES, drawCover } from './cover.js';
-import { createState, initEditor, loadSamplePhotos } from './editor.js';
+import { drawCover, SIZES } from './cover.js';
+import { createState, initEditor, loadSamplePhotos, refreshSlots, refreshPanelControls } from './editor.js';
 import { runShot } from './shots.js';
 
-const canvas = document.getElementById('cover');
 const state = createState();
+const canvas = document.getElementById('cover');
 
 function render() {
   const size = SIZES[state.size] ?? SIZES['1080x1350'];
-  if (canvas.width !== size.w) canvas.width = size.w;
-  if (canvas.height !== size.h) canvas.height = size.h;
+  canvas.width = size.w;
+  canvas.height = size.h;
   const ctx = canvas.getContext('2d');
   drawCover(ctx, state, size.w, size.h);
 }
 
-const editor = initEditor(state, canvas, render);
+initEditor(state, render);
 
-const params = new URLSearchParams(window.location.search);
-const shot = params.get('shot');
-
+const query = new URLSearchParams(window.location.search);
+const shot = query.get('shot');
 if (shot) {
-  runShot(shot, window.location.search, state, canvas, render)
+  runShot(shot, query, state, canvas, render)
     .then(() => {
-      // The shot changed state behind the editor's back; sync the controls.
-      editor.refreshSlots();
-      editor.refreshPanelControls();
-      editor.refreshSizeButtons();
-      editor.refreshLayoutChips();
+      refreshSlots(state);
+      refreshPanelControls(state);
     })
     .catch((err) => {
-      console.error('shot failed', err);
+      console.error(err);
       window.__shotReady = true;
     });
 } else {
   loadSamplePhotos(state)
     .then(() => {
-      editor.refreshSlots();
+      refreshSlots(state);
+      refreshPanelControls(state);
       render();
     })
-    .catch((err) => console.warn('samples failed', err));
-  render();
+    .catch((err) => {
+      console.error(err);
+      render();
+    });
 }

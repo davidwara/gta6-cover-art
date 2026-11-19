@@ -1,13 +1,13 @@
-// Vice City Nights — hand-in entrypoint (Node 22, standard library only).
+// Vice City Nights — entrypoint for the gta6-cover-art-01 bounty (Node 22,
+// standard library only). The app itself is the plain static folder app/
+// next to this file; this program hands it in: it copies app/ and
+// screenshots/ into $MAKEFUN_OUTPUT_DIR (or /output) and writes
+// /output/dossier.json with the vendored make.fun library.
 //
-// The app is plain static files a desktop browser loads offline: app/
-// (index.html + ES modules, no library, no network request) and the
-// screenshots/ renders. This program copies both from beside itself to the
-// output directory and writes dossier.json with the vendored make.fun
-// library, the summary the judge reads.
+//   MAKEFUN_OUTPUT_DIR=/tmp/vcn-out node --experimental-strip-types main.ts
 //
-// Outside the grader's container, MAKEFUN_OUTPUT_DIR stands in for /output:
-//   mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
+// It refuses to hand in an entry with no screenshots, because a cover-art
+// entry nobody can see is not an entry at all.
 
 import { cpSync, existsSync, mkdirSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -17,23 +17,26 @@ import { buildDossier } from './vendor/makefun-app.ts';
 const here = fileURLToPath(new URL('.', import.meta.url));
 const out = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
 
+const shotsDir = join(here, 'screenshots');
+if (!existsSync(shotsDir)) {
+  throw new Error(`screenshots/ is missing next to main.ts (${shotsDir})`);
+}
+const shots = readdirSync(shotsDir).filter((f) => /\.(jpe?g|png|webp)$/i.test(f));
+if (shots.length === 0) {
+  throw new Error('no screenshots in screenshots/ — capture them before handing in');
+}
+if (shots.length > 4) {
+  throw new Error(`too many screenshots (${shots.length}) — the dossier cap is 4`);
+}
+if (!existsSync(join(here, 'app'))) {
+  throw new Error(`app/ is missing next to main.ts (${join(here, 'app')})`);
+}
+
 mkdirSync(out, { recursive: true });
 cpSync(join(here, 'app'), join(out, 'app'), { recursive: true });
 mkdirSync(join(out, 'screenshots'), { recursive: true });
-if (existsSync(join(here, 'screenshots'))) {
-  cpSync(join(here, 'screenshots'), join(out, 'screenshots'), { recursive: true });
-}
+cpSync(shotsDir, join(out, 'screenshots'), { recursive: true });
 
-const shotNames = readdirSync(join(out, 'screenshots')).sort();
-if (shotNames.length === 0) {
-  throw new Error('no screenshots in screenshots/ — capture them first (see shots.json)');
-}
-console.log(`handed in: ${shotNames.length} screenshot(s) — ${shotNames.join(', ')}`);
-
-// The scorer's own caps (from the bounty's gate.json): only text_max_bytes
-// shapes the bytes; the others refuse an entry the scorer would refuse
-// (more than 4 screenshots or one over 256 KiB; more than 993 files in
-// app/ or 48 MiB of app files in all, or a path under app/ over 1000 bytes).
 writeFileSync(
   join(out, 'dossier.json'),
   buildDossier(out, {
@@ -44,3 +47,7 @@ writeFileSync(
     app_path_max_bytes: 1000,
   }),
 );
+
+for (const shot of shots) console.log(`handed in: ${shot}`);
+console.log(`handed in: ${shots.length} screenshot(s)`);
+console.log(`dossier written to ${join(out, 'dossier.json')}`);

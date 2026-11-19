@@ -1,56 +1,51 @@
-// Vice City Nights — screenshot scene driver.
-// Reads the shot parameters out of the URL (?shot=cover&photo=pier&...),
-// sets the editor state to match, renders once, then raises
-// window.__shotReady so the capture harness knows the frame is done.
+// Vice City Nights — screenshot scenes (app/src/shots.js).
+// Driven by the URL: ?shot=cover shows only the cover full-viewport,
+// ?shot=editor shows the editor. Both read photo, caption, size, layout,
+// grade, titleStyle and subtitle from the query, then signal readiness
+// with window.__shotReady so the capture script can screenshot.
 
 import { SIZES, freshPanels } from './cover.js';
-import { loadSamplePhotos } from './editor.js';
-
-const SAMPLE_INDEX = { pier: 0, boulevard: 1 };
+import { loadSamplePhotos, loadedCount } from './editor.js';
 
 export async function runShot(shot, query, state, canvas, render) {
-  const params = new URLSearchParams(query);
+  // Apply the query params to the state.
+  const photoName = query.get('photo');
+  const caption = query.get('caption');
+  const size = query.get('size');
+  const layout = query.get('layout');
+  const grade = query.get('grade');
+  const titleStyle = query.get('titleStyle');
+  const subtitle = query.get('subtitle');
 
-  const size = params.get('size');
-  if (size && SIZES[size]) state.size = size;
-
-  const layout = params.get('layout');
-  if (layout) state.layout = layout;
-
-  const grade = params.get('grade');
-  if (grade) state.grade = grade;
-
-  const titleStyle = params.get('titleStyle');
-  if (titleStyle) state.titleStyle = titleStyle;
-
-  const caption = params.get('caption');
+  if (size && SIZES[size]) {
+    state.size = size;
+    state.layout = SIZES[size].layout;
+    canvas.width = SIZES[size].w;
+    canvas.height = SIZES[size].h;
+  }
+  if (layout && ['poster', 'square', 'wide'].includes(layout)) state.layout = layout;
+  if (grade && ['vice', 'neon', 'gold'].includes(grade)) state.grade = grade;
+  if (titleStyle && ['sunset', 'vice', 'neon'].includes(titleStyle)) state.titleStyle = titleStyle;
   if (caption) state.caption = caption;
-
-  const subtitle = params.get('subtitle');
   if (subtitle) state.subtitle = subtitle;
 
-  // Load the bundled samples, then point the hero panel at the requested photo.
+  // Load the samples, then swap the requested photo into slot 0 so it is
+  // the hero of the cover shot.
   await loadSamplePhotos(state);
-  const wanted = params.get('photo');
-  if (wanted && SAMPLE_INDEX[wanted] !== undefined && state.panels[0]) {
-    state.panels[0].photo = SAMPLE_INDEX[wanted];
+  if (photoName && ['pier', 'boulevard'].includes(photoName)) {
+    const idx = state.photos.findIndex((p) => p && p.src.endsWith(`${photoName}.jpg`));
+    if (idx > 0) {
+      const tmp = state.photos[0];
+      state.photos[0] = state.photos[idx];
+      state.photos[idx] = tmp;
+    }
   }
+  state.panels = freshPanels(state.layout, loadedCount(state), state.onePhotoAll);
   state.selected = 0;
 
-  if (shot === 'cover') {
-    // Cover shots show only the artwork, no editor chrome.
-    document.body.classList.add('shot-cover');
-  }
-
-  try {
-    await document.fonts.ready;
-  } catch {
-    // Bebas Neue may already be cached or missing; render anyway.
-  }
+  if (shot === 'cover') document.body.classList.add('shot-cover');
+  await document.fonts.ready;
   render();
-
-  // Two frames so the canvas paint is actually on screen before we signal.
   await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
   window.__shotReady = true;
-  return state;
 }

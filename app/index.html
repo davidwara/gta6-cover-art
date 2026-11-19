@@ -1,125 +1,115 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Vice City Nights — GTA 6-style cover art maker</title>
-  <meta name="description" content="Turn your photo + caption into GTA 6-style multi-panel cover art. 100% offline, exports a PNG.">
-  <link rel="stylesheet" href="./style.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vice City Nights — GTA 6-style cover art maker</title>
+<link rel="stylesheet" href="./style.css">
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand">
-      <span class="brand-mark" aria-hidden="true">VI</span>
-      <div class="brand-text">
-        <h1>Vice City Nights</h1>
-        <p class="tagline">Turn any photo + caption into GTA 6-style cover art. 100% offline — your photos never leave this machine.</p>
-      </div>
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true">VI</span>
+    <div class="brand-text">
+      <h1>Vice City Nights</h1>
+      <p>Turn any photo + caption into GTA 6-style cover art. 100% offline &mdash; your photos never leave this machine.</p>
     </div>
-    <div class="size-switch" role="group" aria-label="Canvas size">
-      <button type="button" class="size-btn" data-size="1080x1080">1080 × 1080</button>
-      <button type="button" class="size-btn active" data-size="1080x1350">1080 × 1350</button>
-      <button type="button" class="size-btn" data-size="1920x1080">1920 × 1080</button>
-    </div>
-  </header>
+  </div>
+  <div class="size-switch" role="group" aria-label="Cover size">
+    <button type="button" class="size-btn" data-size="1080x1080">1080 &times; 1080</button>
+    <button type="button" class="size-btn active" data-size="1080x1350">1080 &times; 1350</button>
+    <button type="button" class="size-btn" data-size="1920x1080">1920 &times; 1080</button>
+  </div>
+</header>
 
-  <main class="editor">
-    <section class="stage" aria-label="Cover preview">
-      <div class="canvas-wrap">
-        <canvas id="cover" width="1080" height="1350"></canvas>
+<main class="layout">
+  <section class="stage-wrap">
+    <div class="stage">
+      <canvas id="cover" width="1080" height="1350"></canvas>
+    </div>
+    <p class="hint" id="hint">Click a panel to select it &middot; drag its photo to move it &middot; scroll to zoom</p>
+  </section>
+
+  <aside class="panel">
+    <section class="card">
+      <h2><span class="num">1</span> Photos</h2>
+      <div id="photoSlots" class="slots"></div>
+      <div class="row">
+        <button type="button" id="addPhotosBtn" class="btn secondary">+ Add photos</button>
+        <button type="button" id="loadSamplesBtn" class="btn secondary">Load sample photos</button>
       </div>
-      <p class="hint">Click a panel to select it · drag its photo to reposition · scroll or use Zoom to crop</p>
+      <input type="file" id="photoInput" accept="image/*" multiple hidden>
+      <label class="check"><input type="checkbox" id="onePhotoAll"> One photo fills every panel</label>
     </section>
 
-    <aside class="panel" aria-label="Editor controls">
-      <section class="card">
-        <h2><span class="step">1</span> Photos</h2>
-        <div id="photoSlots" class="slots"></div>
-        <div class="row">
-          <button type="button" id="addPhotosBtn" class="btn ghost">+ Add photos</button>
-          <button type="button" id="loadSamples" class="btn ghost">Load sample photos</button>
-        </div>
-        <input type="file" id="addPhotos" accept="image/*" multiple hidden>
-        <label class="check">
-          <input type="checkbox" id="onePhotoAll">
-          <span>One photo fills every panel</span>
-        </label>
-      </section>
+    <section class="card">
+      <h2><span class="num">2</span> Layout &amp; grade</h2>
+      <div class="chip-row" id="layoutChips">
+        <button type="button" class="chip active" data-layout="poster">Poster grid</button>
+        <button type="button" class="chip" data-layout="square">Square collage</button>
+        <button type="button" class="chip" data-layout="wide">Wide cinematic</button>
+      </div>
+      <div class="chip-row" id="gradeChips">
+        <button type="button" class="chip active" data-grade="vice">Vice Sunset</button>
+        <button type="button" class="chip" data-grade="neon">Neon Night</button>
+        <button type="button" class="chip" data-grade="gold">Palm Gold</button>
+      </div>
+      <label class="slider-row">Sunset glow
+        <input type="range" id="glowSlider" min="0" max="100" value="65">
+        <span id="glowValue">65</span>
+      </label>
+    </section>
 
-      <section class="card">
-        <h2><span class="step">2</span> Layout &amp; grade</h2>
-        <div class="chips" role="group" aria-label="Layout">
-          <button type="button" class="chip layout-chip active" data-layout="poster">Poster grid</button>
-          <button type="button" class="chip layout-chip" data-layout="square">Square collage</button>
-          <button type="button" class="chip layout-chip" data-layout="wide">Wide cinematic</button>
-        </div>
-        <div class="chips" role="group" aria-label="Colour grade">
-          <button type="button" class="chip grade-chip active" data-grade="vice">Vice Sunset</button>
-          <button type="button" class="chip grade-chip" data-grade="neon">Neon Night</button>
-          <button type="button" class="chip grade-chip" data-grade="gold">Palm Gold</button>
-        </div>
-        <label class="slider-row">
-          <span>Sunset glow</span>
-          <input type="range" id="glowRange" min="0" max="100" step="1" value="65">
-          <output id="glowVal">65</output>
-        </label>
-      </section>
+    <section class="card">
+      <h2><span class="num">3</span> Selected panel</h2>
+      <p class="panel-note" id="panelNote">Panel 1 &mdash; Hero</p>
+      <label class="slider-row">Zoom
+        <input type="range" id="zoomSlider" min="1" max="3" step="0.01" value="1.15">
+        <span id="zoomValue">1.15&times;</span>
+      </label>
+      <label class="slider-row">Position X
+        <input type="range" id="posXSlider" min="-1" max="1" step="0.01" value="0">
+        <span id="posXValue">0.00</span>
+      </label>
+      <label class="slider-row">Position Y
+        <input type="range" id="posYSlider" min="-1" max="1" step="0.01" value="0">
+        <span id="posYValue">0.00</span>
+      </label>
+      <div class="row">
+        <button type="button" id="fitBtn" class="btn secondary">Fit photo</button>
+        <button type="button" id="fillBtn" class="btn secondary">Fill panel</button>
+      </div>
+    </section>
 
-      <section class="card">
-        <h2><span class="step">3</span> Selected panel</h2>
-        <p id="panelNote" class="panel-note">Panel 1 — Hero</p>
-        <label class="slider-row">
-          <span>Zoom</span>
-          <input type="range" id="zoomRange" min="1" max="3" step="0.01" value="1.15">
-          <output id="zoomVal">1.15×</output>
-        </label>
-        <label class="slider-row">
-          <span>Position X</span>
-          <input type="range" id="posXRange" min="-1" max="1" step="0.01" value="0">
-          <output id="posXVal">0.00</output>
-        </label>
-        <label class="slider-row">
-          <span>Position Y</span>
-          <input type="range" id="posYRange" min="-1" max="1" step="0.01" value="0">
-          <output id="posYVal">0.00</output>
-        </label>
-        <div class="row">
-          <button type="button" id="fitBtn" class="btn ghost">Fit photo</button>
-          <button type="button" id="fillBtn" class="btn ghost">Fill panel</button>
-        </div>
-      </section>
+    <section class="card">
+      <h2><span class="num">4</span> Caption</h2>
+      <label class="field">Title
+        <input type="text" id="titleInput" value="Sunset Heist" maxlength="40">
+      </label>
+      <label class="field">Subtitle
+        <input type="text" id="subtitleInput" value="VICE CITY &middot; EST. 2026" maxlength="60">
+      </label>
+      <div class="chip-row" id="titleStyleChips">
+        <button type="button" class="chip active" data-title-style="sunset">Sunset</button>
+        <button type="button" class="chip" data-title-style="vice">Vice</button>
+        <button type="button" class="chip" data-title-style="neon">Neon</button>
+      </div>
+      <label class="slider-row">Title size
+        <input type="range" id="titleScaleSlider" min="0.6" max="1.4" step="0.01" value="1">
+        <span id="titleScaleValue">1.00&times;</span>
+      </label>
+    </section>
 
-      <section class="card">
-        <h2><span class="step">4</span> Caption</h2>
-        <label class="field">
-          <span>Title</span>
-          <input type="text" id="titleInput" value="Sunset Heist" maxlength="40" autocomplete="off">
-        </label>
-        <label class="field">
-          <span>Subtitle</span>
-          <input type="text" id="subtitleInput" value="VICE CITY · EST. 2026" maxlength="60" autocomplete="off">
-        </label>
-        <div class="chips" role="group" aria-label="Title style">
-          <button type="button" class="chip title-chip active" data-style="sunset">Sunset</button>
-          <button type="button" class="chip title-chip" data-style="vice">Vice</button>
-          <button type="button" class="chip title-chip" data-style="neon">Neon</button>
-        </div>
-        <label class="slider-row">
-          <span>Title size</span>
-          <input type="range" id="titleSizeRange" min="0.6" max="1.4" step="0.01" value="1">
-          <output id="titleSizeVal">100%</output>
-        </label>
-      </section>
+    <button type="button" id="exportBtn" class="btn export">Export PNG</button>
+    <p class="status" id="status">Ready.</p>
+  </aside>
+</main>
 
-      <button type="button" id="exportBtn" class="btn export">⬇ Export PNG</button>
-      <p id="status" class="status" role="status">Ready — load a photo to start.</p>
-    </aside>
-  </main>
+<footer class="footnote">
+  A fan-made cover art maker. No Rockstar logo, artwork or font is used.
+  Bebas Neue is licensed under the SIL Open Font License 1.1 (see app/fonts/FONT-LICENSE.txt).
+</footer>
 
-  <footer class="foot">
-    <p>A fan-made cover art toy. Not affiliated with Rockstar Games — no Rockstar logo, artwork or font is used. Photos stay on your device.</p>
-  </footer>
-
-  <script type="module" src="./src/main.js"></script>
+<script type="module" src="./src/main.js"></script>
 </body>
 </html>

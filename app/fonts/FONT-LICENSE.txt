@@ -1,14 +1,13 @@
-Font license note — Vice City Nights
-====================================
+Bebas Neue — font license note (app/fonts/)
+===========================================
 
-The display font bundled in this app is Bebas Neue, designed by Dharma Type.
+The display font used by Vice City Nights is Bebas Neue, designed by
+Dharma Type. It is licensed under the SIL Open Font License, Version 1.1
+(see https://scripts.sil.org/OFL — the full license text ships with the
+@fontsource/bebas-neue package this file came from).
 
-- License: SIL Open Font License 1.1 (OFL-1.1) — free to use, including
-  commercially, with the license text kept alongside the font.
-- Source: @fontsource/bebas-neue (bebas-neue-latin-400-normal.woff2).
-- The full OFL-1.1 text is available at
-  https://scripts.sil.org/OFL
+File: bebas-neue-latin-400-normal.woff2 (latin subset, weight 400)
+Source: @fontsource/bebas-neue
 
-No Rockstar Games font, logo, artwork or trademark is used anywhere in
-this project. "Vice City Nights" is a fan-made cover art toy; GTA and
-Grand Theft Auto are trademarks of Rockstar Games / Take-Two Interactive.
+No Rockstar Games font, logo or artwork is used anywhere in this app.
+All cover art is generated on the user's own machine from their own photos.
