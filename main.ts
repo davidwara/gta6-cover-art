@@ -1,15 +1,14 @@
-// Vice City Nights — entrypoint for the gta6-cover-art-01 bounty (Node 22,
-// standard library only). The app itself is the plain static folder app/
-// next to this file; this program hands it in: it copies app/ and
-// screenshots/ into $MAKEFUN_OUTPUT_DIR (or /output) and writes
-// /output/dossier.json with the vendored make.fun library.
+// Vice City Nights — hand-in entrypoint (Node 22, standard library only).
+// Copies app/ and screenshots/ from beside this file to /output and writes
+// /output/dossier.json with the vendored make.fun library. Outside the
+// grader's container, MAKEFUN_OUTPUT_DIR stands in for /output:
 //
-//   MAKEFUN_OUTPUT_DIR=/tmp/vcn-out node --experimental-strip-types main.ts
+//   mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
 //
-// It refuses to hand in an entry with no screenshots, because a cover-art
-// entry nobody can see is not an entry at all.
-
-import { cpSync, existsSync, mkdirSync, readdirSync, writeFileSync } from 'node:fs';
+// The app itself is plain static files under app/ (index.html + ES modules,
+// no build step, no network request) that turn your photos and a caption
+// into GTA-style multi-panel cover art, exported as a PNG.
+import { cpSync, existsSync, mkdirSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildDossier } from './vendor/makefun-app.ts';
@@ -17,26 +16,23 @@ import { buildDossier } from './vendor/makefun-app.ts';
 const here = fileURLToPath(new URL('.', import.meta.url));
 const out = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
 
-const shotsDir = join(here, 'screenshots');
-if (!existsSync(shotsDir)) {
-  throw new Error(`screenshots/ is missing next to main.ts (${shotsDir})`);
-}
-const shots = readdirSync(shotsDir).filter((f) => /\.(jpe?g|png|webp)$/i.test(f));
-if (shots.length === 0) {
-  throw new Error('no screenshots in screenshots/ — capture them before handing in');
-}
-if (shots.length > 4) {
-  throw new Error(`too many screenshots (${shots.length}) — the dossier cap is 4`);
-}
-if (!existsSync(join(here, 'app'))) {
-  throw new Error(`app/ is missing next to main.ts (${join(here, 'app')})`);
-}
-
 mkdirSync(out, { recursive: true });
 cpSync(join(here, 'app'), join(out, 'app'), { recursive: true });
 mkdirSync(join(out, 'screenshots'), { recursive: true });
-cpSync(shotsDir, join(out, 'screenshots'), { recursive: true });
+if (existsSync(join(here, 'screenshots'))) {
+  cpSync(join(here, 'screenshots'), join(out, 'screenshots'), { recursive: true });
+}
 
+const shotNames = readdirSync(join(out, 'screenshots')).filter((n) => !n.startsWith('.'));
+if (shotNames.length === 0) {
+  throw new Error('no screenshots to hand in: run the capture step first');
+}
+console.log(`handed in: ${shotNames.length} screenshot(s) — ${shotNames.join(', ')}`);
+
+// The scorer's own caps: only text_max_bytes shapes the bytes; the others
+// refuse an entry the scorer would refuse (more than 4 screenshots or one
+// over 256 KiB; more than 993 files in app/ or 48 MiB of app files in all,
+// or a path under app/ over 1000 bytes).
 writeFileSync(
   join(out, 'dossier.json'),
   buildDossier(out, {
@@ -47,7 +43,7 @@ writeFileSync(
     app_path_max_bytes: 1000,
   }),
 );
-
-for (const shot of shots) console.log(`handed in: ${shot}`);
-console.log(`handed in: ${shots.length} screenshot(s)`);
-console.log(`dossier written to ${join(out, 'dossier.json')}`);
+console.log('dossier.json written');
+const dossierBytes = statSync(join(out, 'dossier.json')).size;
+console.log(`dossier size: ${dossierBytes} bytes (cap 1572864)`);
+if (dossierBytes > 1572864) throw new Error('dossier over the 1.5 MiB cap');

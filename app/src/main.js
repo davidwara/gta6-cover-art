@@ -1,46 +1,26 @@
-// Vice City Nights — boot (app/src/main.js).
-// Creates the state, wires the editor, renders. With ?shot= in the URL it
-// runs the screenshot scene instead; otherwise it loads the sample photos
-// and renders the editor.
-
-import { drawCover, SIZES } from './cover.js';
-import { createState, initEditor, loadSamplePhotos, refreshSlots, refreshPanelControls } from './editor.js';
+// main.js — boot for Vice City Nights. Creates the state, wires the
+// editor, renders; a ?shot= URL runs the screenshot scene instead of the
+// normal sample load.
+import { createState, initEditor, loadSamplePhotos } from './editor.js';
 import { runShot } from './shots.js';
 
+const params = new URLSearchParams(location.search);
+const shot = params.get('shot');
 const state = createState();
 const canvas = document.getElementById('cover');
+const editor = initEditor(state, canvas, () => {});
 
-function render() {
-  const size = SIZES[state.size] ?? SIZES['1080x1350'];
-  canvas.width = size.w;
-  canvas.height = size.h;
-  const ctx = canvas.getContext('2d');
-  drawCover(ctx, state, size.w, size.h);
-}
-
-initEditor(state, render);
-
-const query = new URLSearchParams(window.location.search);
-const shot = query.get('shot');
 if (shot) {
-  runShot(shot, query, state, canvas, render)
-    .then(() => {
-      refreshSlots(state);
-      refreshPanelControls(state);
-    })
-    .catch((err) => {
-      console.error(err);
-      window.__shotReady = true;
-    });
+  runShot(shot, location.search, state, canvas, () => editor.draw()).then(() => {
+    editor.refreshSlots();
+    editor.refreshPanel();
+  });
 } else {
   loadSamplePhotos(state)
     .then(() => {
-      refreshSlots(state);
-      refreshPanelControls(state);
-      render();
+      editor.refreshSlots();
+      editor.refreshPanel();
+      editor.draw();
     })
-    .catch((err) => {
-      console.error(err);
-      render();
-    });
+    .catch(() => editor.draw());
 }

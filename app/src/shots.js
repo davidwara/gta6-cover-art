@@ -1,46 +1,43 @@
-// Vice City Nights — screenshot scenes (app/src/shots.js).
-// Driven by the URL: ?shot=cover shows only the cover full-viewport,
-// ?shot=editor shows the editor. Both read photo, caption, size, layout,
-// grade, titleStyle and subtitle from the query, then signal readiness
-// with window.__shotReady so the capture script can screenshot.
-
+// shots.js — screenshot scenes for Vice City Nights. runShot reads the
+// shot parameters from the URL, loads the sample photos, renders, and
+// signals window.__shotReady so the capture script can take the shot.
 import { SIZES, freshPanels } from './cover.js';
-import { loadSamplePhotos, loadedCount } from './editor.js';
+
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error(`could not load ${src}`));
+    img.src = src;
+  });
+}
 
 export async function runShot(shot, query, state, canvas, render) {
-  // Apply the query params to the state.
-  const photoName = query.get('photo');
-  const caption = query.get('caption');
-  const size = query.get('size');
-  const layout = query.get('layout');
-  const grade = query.get('grade');
-  const titleStyle = query.get('titleStyle');
-  const subtitle = query.get('subtitle');
+  const params = new URLSearchParams(query);
+  const photoName = params.get('photo') || 'pier';
+  const caption = params.get('caption');
+  const size = params.get('size');
+  const layout = params.get('layout');
+  const grade = params.get('grade');
+  const titleStyle = params.get('titleStyle');
+  const subtitle = params.get('subtitle');
 
-  if (size && SIZES[size]) {
-    state.size = size;
-    state.layout = SIZES[size].layout;
-    canvas.width = SIZES[size].w;
-    canvas.height = SIZES[size].h;
-  }
-  if (layout && ['poster', 'square', 'wide'].includes(layout)) state.layout = layout;
-  if (grade && ['vice', 'neon', 'gold'].includes(grade)) state.grade = grade;
-  if (titleStyle && ['sunset', 'vice', 'neon'].includes(titleStyle)) state.titleStyle = titleStyle;
+  if (size && SIZES[size]) state.size = size;
+  if (layout) state.layout = layout;
+  if (grade) state.grade = grade;
+  if (titleStyle) state.titleStyle = titleStyle;
   if (caption) state.caption = caption;
   if (subtitle) state.subtitle = subtitle;
 
-  // Load the samples, then swap the requested photo into slot 0 so it is
-  // the hero of the cover shot.
-  await loadSamplePhotos(state);
-  if (photoName && ['pier', 'boulevard'].includes(photoName)) {
-    const idx = state.photos.findIndex((p) => p && p.src.endsWith(`${photoName}.jpg`));
-    if (idx > 0) {
-      const tmp = state.photos[0];
-      state.photos[0] = state.photos[idx];
-      state.photos[idx] = tmp;
-    }
-  }
-  state.panels = freshPanels(state.layout, loadedCount(state), state.onePhotoAll);
+  // Load both samples, then swap the hero to the requested photo.
+  const [pier, boulevard] = await Promise.all([
+    loadImage('./samples/pier.jpg'),
+    loadImage('./samples/boulevard.jpg'),
+  ]);
+  const hero = photoName === 'boulevard' ? boulevard : pier;
+  const other = photoName === 'boulevard' ? pier : boulevard;
+  state.photos = [hero, other, null, null];
+  state.panels = freshPanels(state.layout, 2);
   state.selected = 0;
 
   if (shot === 'cover') document.body.classList.add('shot-cover');

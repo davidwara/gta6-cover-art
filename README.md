@@ -4,40 +4,43 @@
 [![rank](https://make.fun/badge/gta6-cover-art-01/davidwara/gta6-cover-art/rank.svg)](https://make.fun/bounty/gta6-cover-art-01/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=gta6-cover-art-01)
 [![reward](https://make.fun/badge/gta6-cover-art-01/davidwara/gta6-cover-art/reward.svg)](https://make.fun/bounty/gta6-cover-art-01?utm_source=github&utm_medium=readme&utm_campaign=gta6-cover-art-01)
 
-**Vice City Nights** turns a photo + caption into GTA 6-style multi-panel
-cover art and exports it as a PNG. 100% static files under `app/` — no
-network request, no build step, no upload: photos are read on your machine
-and never leave it.
+**Vice City Nights** — an offline web app that turns your photo and a
+caption into GTA 6-style multi-panel cover art and exports it as a PNG.
 
-- 4 photo slots, sample photos included, one-photo-fills-every-panel mode
-- Poster (1080×1350), square (1080×1080) and wide cinematic (1920×1080) sizes
-- 3 panel layouts, 3 colour grades (Vice Sunset, Neon Night, Palm Gold),
-  sunset-glow slider
-- Per-panel zoom + position (drag the photo, scroll to zoom), Fit / Fill
-- Bebas Neue title ribbon with 3 title styles, subtitle, title-size slider
-- Retro sun, palm silhouettes, halftone dots and film grain baked into every cover
-- Export PNG at the full cover size (`vice-city-nights-<size>.png`)
+Load up to four of your own photos (or the two bundled samples), drop
+them into the poster, square or wide layout, pick a colour grade — Vice
+Sunset, Neon Night or Palm Gold — slide the sunset glow, crop and position
+each panel by dragging, write your title and subtitle, and export a
+1080×1080, 1080×1350 or 1920×1080 PNG ready to post. The cover is drawn
+entirely in code: retro sun with slits, palm silhouettes, halftone dots,
+grain and a tilted title ribbon. Photos are read on your machine and never
+uploaded; the app makes no network request at all.
 
 ## Run it
 
 ```sh
 node serve.ts
-# open http://localhost:8080
 ```
 
-Node 22, standard library only. `main.ts` is the make.fun entrypoint: it
-copies `app/` + `screenshots/` to `$MAKEFUN_OUTPUT_DIR` and writes
-`dossier.json`.
+Then open http://localhost:8080
+
+No build step, no dependencies — plain static files under `app/`.
 
 ## Screenshots
 
-The four shots in `screenshots/` (defined in `shots.json`) show the wide
-cover, the editor, the square neon cover and the portrait gold cover.
+![Cover](screenshots/1-cover.jpg)
+![Editor](screenshots/2-editor.jpg)
+![Square cover](screenshots/3-cover-square.jpg)
+![Portrait cover](screenshots/4-cover-portrait.jpg)
 
 ## Notes
 
-A fan-made cover art maker. No Rockstar logo, artwork or font is used.
-Bebas Neue is licensed under the SIL Open Font License 1.1 — see
-`app/fonts/FONT-LICENSE.txt`.
+- Original art only: no Rockstar Games logo, wordmark, official artwork,
+  character or font. The display font is Bebas Neue (SIL OFL 1.1, see
+  `app/fonts/FONT-LICENSE.txt`).
+- Sample photos are free to use and ship with the app.
 
-Built for [make.fun](https://make.fun/bounty/gta6-cover-art-01?ref=davidwara) — bounty `gta6-cover-art-01`.
+---
+
+Built for the make.fun bounty
+[gta6-cover-art-01](https://make.fun/bounty/gta6-cover-art-01?ref=davidwara).
