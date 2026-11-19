@@ -1,0 +1,10 @@
+Font shipped with this app
+===========================
+
+bebas-neue-latin-400-normal.woff2 — "Bebas Neue" Regular, a condensed
+display face by Dharma Type (Ryoichi Tsunekawa), used for the cover's bold
+caption lettering. Licensed under the SIL Open Font License, Version 1.1
+(http://scripts.sil.org/OFL), which allows this file to be shipped with the
+app. Source: the @fontsource/bebas-neue package (files/bebas-neue-latin-400-
+normal.woff2). No Rockstar Games font, logo or artwork is used anywhere in
+this app: every letter, panel and palm tree is drawn by the app's own code.
