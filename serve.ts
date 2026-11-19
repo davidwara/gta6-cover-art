@@ -1,18 +1,16 @@
-// A tiny static server for app/ (Node 22, standard library only), so the cover
-// maker can be tried locally without a build step: `node serve.ts` serves app/
-// on http://localhost:8080. It sends the MIME types an offline web app needs,
-// refuses any path outside app/, and otherwise does nothing clever: this is a
-// development convenience, not a web server for the internet.
-import { createReadStream, statSync } from 'node:fs';
+// Vice City Nights — tiny static server for app/ (development only).
+//
+//   node serve.ts [--port 8080]
+//
+// Serves only files inside app/, with a small MIME table. No network
+// requests are made by the app itself; this server just hands the files out.
+
 import { createServer } from 'node:http';
+import { existsSync, readFileSync, statSync } from 'node:fs';
 import { extname, join, normalize, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const root = resolve(fileURLToPath(new URL('./app', import.meta.url)));
-const args = process.argv.slice(2);
-const portIndex = args.indexOf('--port');
-const requested = portIndex === -1 ? 8080 : Number(args[portIndex + 1]);
-const port = Number.isInteger(requested) && requested > 0 && requested < 65536 ? requested : 8080;
+const APP_DIR = resolve(join(fileURLToPath(new URL('.', import.meta.url)), 'app'));
 
 const MIME: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
@@ -23,44 +21,51 @@ const MIME: Record<string, string> = {
   '.png': 'image/png',
   '.jpg': 'image/jpeg',
   '.jpeg': 'image/jpeg',
-  '.gif': 'image/gif',
   '.webp': 'image/webp',
   '.svg': 'image/svg+xml',
-  '.ico': 'image/x-icon',
   '.woff2': 'font/woff2',
-  '.woff': 'font/woff',
   '.ttf': 'font/ttf',
-  '.otf': 'font/otf',
-  '.txt': 'text/plain; charset=utf-8',
 };
 
-createServer((request, response) => {
-  const url = new URL(request.url ?? '/', 'http://localhost');
-  let pathname: string;
-  try {
-    pathname = decodeURIComponent(url.pathname);
-  } catch {
-    response.writeHead(400).end('bad request');
+function portFromArgs(): number {
+  const flag = process.argv.indexOf('--port');
+  if (flag >= 0 && process.argv[flag + 1]) {
+    const n = Number(process.argv[flag + 1]);
+    if (Number.isInteger(n) && n > 0 && n < 65536) return n;
+  }
+  const env = Number(process.env.PORT ?? '');
+  if (Number.isInteger(env) && env > 0 && env < 65536) return env;
+  return 8080;
+}
+
+const server = createServer((req, res) => {
+  const rawPath = decodeURIComponent(new URL(req.url ?? '/', 'http://localhost').pathname);
+  const rel = normalize(rawPath).replace(/^(\.\.[/\\])+/, '').replace(/^[/\\]/, '');
+  const file = join(APP_DIR, rel === '' ? 'index.html' : rel);
+
+  // Refuse anything outside app/.
+  if (!file.startsWith(APP_DIR + sep) && file !== APP_DIR) {
+    res.writeHead(403, { 'content-type': 'text/plain' });
+    res.end('forbidden\n');
     return;
   }
-  if (pathname.endsWith('/')) pathname += 'index.html';
-  const file = resolve(join(root, normalize(pathname)));
-  if (file !== root && !file.startsWith(root + sep)) {
-    response.writeHead(403).end('forbidden');
+
+  let target = file;
+  if (existsSync(target) && statSync(target).isDirectory()) {
+    target = join(target, 'index.html');
+  }
+  if (!existsSync(target) || !statSync(target).isFile()) {
+    res.writeHead(404, { 'content-type': 'text/plain' });
+    res.end('not found\n');
     return;
   }
-  let size: number;
-  try {
-    const stats = statSync(file);
-    if (!stats.isFile()) throw new Error('not a file');
-    size = stats.size;
-  } catch {
-    response.writeHead(404).end('not found');
-    return;
-  }
-  response.writeHead(200, {
-    'content-type': MIME[extname(file).toLowerCase()] ?? 'application/octet-stream',
-    'content-length': size,
-  });
-  createReadStream(file).pipe(response);
-}).listen(port, () => console.log(`Vice City Nights on http://localhost:${port}`));
+
+  const type = MIME[extname(target).toLowerCase()] ?? 'application/octet-stream';
+  res.writeHead(200, { 'content-type': type });
+  res.end(readFileSync(target));
+});
+
+const port = portFromArgs();
+server.listen(port, () => {
+  console.log(`Vice City Nights serving app/ at http://localhost:${port}`);
+});

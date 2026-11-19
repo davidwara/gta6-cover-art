@@ -1,48 +1,85 @@
-// Vice City Nights — a GTA 6-style cover art maker (make.fun gta6-cover-art-01).
-// The program hands the app in: it copies app/ and screenshots/ from beside this
-// file to /output and writes /output/dossier.json with the vendored make.fun
-// library (vendor/makefun-app.ts, the kit's copy, unchanged). The app itself is
-// plain static files a desktop browser loads offline (app/index.html and its ES
-// modules, one vendored OFL font, two sample photos), with no network request:
-// a photo and a caption become a multi-panel Vice City cover, exported as PNG.
-// Serve it locally with `node serve.ts`, then open http://localhost:8080.
-// Outside the grader's container, MAKEFUN_OUTPUT_DIR stands in for /output:
-//   mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
+// Vice City Nights — make.fun entrypoint (Node 22, standard library only).
+//
+// Copies the static app (app/) and its screenshots (screenshots/) from this
+// repository into the hand-in directory, then writes dossier.json there with
+// buildDossier from ./vendor/makefun-app.ts. Run it as:
+//
+//   MAKEFUN_OUTPUT_DIR=/tmp/vcn-out node --experimental-strip-types main.ts
+//
+// Outside the grader MAKEFUN_OUTPUT_DIR stands in for /output.
 
-import { cpSync, existsSync, mkdirSync, readdirSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { cpSync, existsSync, mkdirSync, readdirSync, statSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildDossier } from './vendor/makefun-app.ts';
 
-const here = fileURLToPath(new URL('.', import.meta.url));
-const out = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
+const REPO_ROOT = dirname(fileURLToPath(import.meta.url));
+const OUT_DIR = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
 
-mkdirSync(out, { recursive: true });
-cpSync(join(here, 'app'), join(out, 'app'), { recursive: true });
-const shotsDir = join(here, 'screenshots');
-if (!existsSync(shotsDir) || readdirSync(shotsDir).filter((n) => !n.startsWith('.')).length === 0) {
-  throw new Error('screenshots/ is empty: take the 3-4 screenshots first (see shots.json), the gate refuses an entry without them');
+const APP_DIR = join(REPO_ROOT, 'app');
+const SHOTS_DIR = join(REPO_ROOT, 'screenshots');
+
+function isImageFile(name: string): boolean {
+  return /\.(png|jpe?g)$/i.test(name);
 }
-mkdirSync(join(out, 'screenshots'), { recursive: true });
-cpSync(shotsDir, join(out, 'screenshots'), { recursive: true });
 
-// The scorer's own caps (reference/gate.json): only text_max_bytes shapes the
-// bytes; the others refuse an entry the scorer would refuse (more than 4
-// screenshots or one over 256 KiB; more than 993 files in app/ or 48 MiB of app
-// files, in all, or a path under app/ over 1000 bytes: app/ counts beside
-// /output's own 1000-entry cap, its screenshots/ and dossier.json).
-writeFileSync(
-  join(out, 'dossier.json'),
-  buildDossier(out, {
+function listShots(): string[] {
+  return listShotsIn(SHOTS_DIR);
+}
+
+function listShotsIn(dir: string): string[] {
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir)
+    .filter((name) => isImageFile(name))
+    .filter((name) => {
+      const full = join(dir, name);
+      return statSync(full).isFile();
+    })
+    .sort();
+}
+
+function main(): void {
+  if (!existsSync(APP_DIR) || !statSync(APP_DIR).isDirectory()) {
+    throw new Error(`app/ is missing next to main.ts (${APP_DIR})`);
+  }
+
+  const shots = listShots();
+  if (shots.length === 0) {
+    throw new Error(
+      'screenshots/ holds no PNG or JPEG — the hand-in needs 3 or 4 screenshots, ' +
+        'the first by name being the cover',
+    );
+  }
+
+  mkdirSync(OUT_DIR, { recursive: true });
+  cpSync(APP_DIR, join(OUT_DIR, 'app'), { recursive: true });
+  cpSync(SHOTS_DIR, join(OUT_DIR, 'screenshots'), { recursive: true });
+
+  const dossier = buildDossier(OUT_DIR, {
     text_max_bytes: 163840,
     screenshots: { max: 4, max_bytes: 262144 },
     app_max_files: 993,
     app_max_bytes: 50331648,
     app_path_max_bytes: 1000,
-  }),
-);
+  });
+  writeFileSync(join(OUT_DIR, 'dossier.json'), dossier);
 
-const shots = existsSync(join(out, 'screenshots'))
-  ? readdirSync(join(out, 'screenshots')).filter((n) => !n.startsWith('.')).sort()
-  : [];
-console.log(`Vice City Nights handed in: ${shots.length} screenshot(s) (${shots.join(', ')})`);
+  // The gate refuses a dossier over 1.5 MiB: fail here instead of at grading.
+  const DOSSIER_MAX_BYTES = 1572864;
+  if (dossier.length > DOSSIER_MAX_BYTES) {
+    throw new Error(`dossier.json is ${dossier.length} bytes, over the ${DOSSIER_MAX_BYTES} cap`);
+  }
+
+  // Confirm the copy landed whole: the hand-in's screenshots must be exactly
+  // the ones this run counted.
+  const copied = listShotsIn(join(OUT_DIR, 'screenshots'));
+  if (copied.length !== shots.length || copied.some((n, i) => n !== shots[i])) {
+    throw new Error('copied screenshots do not match the source screenshots/');
+  }
+
+  console.log(`handed in: ${shots.length} screenshot(s)`);
+  for (const name of shots) console.log(`  screenshot: ${name}`);
+  console.log(`dossier.json: ${dossier.length} bytes`);
+}
+
+main();

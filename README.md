@@ -1,18 +1,19 @@
 # gta6-cover-art
 
-[![make.fun · gta6-cover-art-01](https://make.fun/badge/gta6-cover-art-01.svg)](https://make.fun/bounty/gta6-cover-art-01?utm_source=github&utm_medium=readme&utm_campaign=gta6-cover-art-01)
-[![rank](https://make.fun/badge/gta6-cover-art-01/davidwara/gta6-cover-art/rank.svg)](https://make.fun/bounty/gta6-cover-art-01/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=gta6-cover-art-01)
-[![reward](https://make.fun/badge/gta6-cover-art-01/davidwara/gta6-cover-art/reward.svg)](https://make.fun/bounty/gta6-cover-art-01?utm_source=github&utm_medium=readme&utm_campaign=gta6-cover-art-01)
+[![make.fun competition](https://make.fun/badge/competition/gta6-cover-art-01)](https://make.fun/c/gta6-cover-art-01)
+[![make.fun rank](https://make.fun/badge/rank/davidwara/gta6-cover-art)](https://make.fun/c/gta6-cover-art-01)
+[![make.fun reward](https://make.fun/badge/reward/davidwara/gta6-cover-art)](https://make.fun/c/gta6-cover-art-01)
 
-**Vice City Nights** — turn any photo + caption into GTA 6-style multi-panel cover art, in a web app that runs 100% offline in a desktop browser. Your photos never leave your machine: everything is drawn on a canvas and exported as a PNG to share.
+**Vice City Nights** — a web app that turns your photo + caption into GTA 6-style multi-panel cover art and exports it as a PNG to share.
 
-## What it does
+- Multi-panel poster layouts (poster, square collage, wide cinematic) in the common post sizes 1080 &times; 1080, 1080 &times; 1350 and 1920 &times; 1080.
+- Load up to 4 of your own photos, or use the bundled samples; one photo can fill every panel, or each panel can hold its own.
+- Crop and position each photo per panel (click to select, drag to move, scroll or Zoom to crop), with Fit / Fill shortcuts.
+- Vice City colour grades (Vice Sunset, Neon Night, Palm Gold) with a Sunset glow slider, a retro sun, palm silhouettes, halftone dots and film grain.
+- Editable caption with three title styles and a size slider, on a tilted title ribbon with a level subtitle.
+- One-click Export PNG at the full post size.
 
-- **Multi-panel poster look** — three layouts (Poster grid, Square collage, Wide cinematic) with a hero panel plus supporting panels, white gutters, a retro sun disc and palm silhouettes drawn by code.
-- **Any photo** — load up to 4 photos (or one photo filling every panel), click a panel to select it, drag its photo to reposition, scroll to zoom, or use the Zoom / Position sliders. Fit and Fill presets included.
-- **Bold lettering** — your caption in Bebas Neue (SIL OFL) with a thick outline and glow, in three title styles, plus a subtitle line and adjustable title size.
-- **Vice City grades** — Vice Sunset, Neon Night and Palm Gold colour grades with a sunset-glow slider, halftone dots and film grain.
-- **Fast** — photo to PNG in seconds, in the common post sizes 1080 × 1080, 1080 × 1350 and 1920 × 1080.
+100% offline: the app is plain static files under `app/`, with no build step and no network request. Photos are read on your machine and never uploaded. No Rockstar Games logo, artwork, character or font is used.
 
 ## Run it
 
@@ -20,12 +21,12 @@
 node serve.ts
 ```
 
-Then open http://localhost:8080 — no build step, no network request, every script, font and sample photo is a file under `app/`.
+Then open http://localhost:8080 in a desktop browser.
 
-## Shots
+## Screenshots
 
-`screenshots/` holds 4 shots taken by the app itself: the exported wide cover first, then the editor with a photo loaded, then the square and portrait covers.
+`screenshots/` holds four renders of the app: the wide cover, the editor with a photo loaded, the square neon cover, and the portrait gold cover.
 
 ---
 
-<sub>Entered on [make.fun](https://make.fun/?ref=davidwara&utm_source=github&utm_medium=readme&utm_campaign=gta6-cover-art-01) · AI agents build software for cash rewards</sub>
+Built for [make.fun](https://make.fun/?ref=davidwara) — enter the competition at https://make.fun/c/gta6-cover-art-01

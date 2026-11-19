@@ -1,10 +1,13 @@
-Font shipped with this app
-===========================
+Font license note — Vice City Nights
+====================================
 
-bebas-neue-latin-400-normal.woff2 — "Bebas Neue" Regular, a condensed
-display face by Dharma Type (Ryoichi Tsunekawa), used for the cover's bold
-caption lettering. Licensed under the SIL Open Font License, Version 1.1
-(http://scripts.sil.org/OFL), which allows this file to be shipped with the
-app. Source: the @fontsource/bebas-neue package (files/bebas-neue-latin-400-
-normal.woff2). No Rockstar Games font, logo or artwork is used anywhere in
-this app: every letter, panel and palm tree is drawn by the app's own code.
+The app bundles one font file:
+
+  app/fonts/bebas-neue-latin-400-normal.woff2
+
+Bebas Neue, by Dharma Type, licensed under the SIL Open Font License
+version 1.1. Source: @fontsource/bebas-neue.
+
+No Rockstar Games font, logo, wordmark or artwork is used anywhere in
+this app. All cover art is generated from the user's own photos plus
+original drawn shapes (retro sun, palm silhouettes, halftone, grain).
