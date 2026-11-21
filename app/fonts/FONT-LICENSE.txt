@@ -1,5 +1,4 @@
-Bebas Neue — designed by Dharma Type, released under the SIL Open Font
-License 1.1. Shipped here as bebas-neue-latin-400-normal.woff2, sourced
-from @fontsource/bebas-neue. This app uses no Rockstar Games font, logo,
-or artwork: the lettering is Bebas Neue, the art is drawn in code from
-your own photos, and every visual effect is original.
+Display font: Bebas Neue, by Dharma Type, licensed under the SIL Open Font
+License 1.1. Source: @fontsource/bebas-neue (file
+bebas-neue-latin-400-normal.woff2). No Rockstar Games font, logo or artwork
+is used anywhere in this app.

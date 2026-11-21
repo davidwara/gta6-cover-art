@@ -4,15 +4,19 @@
 [![rank](https://make.fun/badge/gta6-cover-art-01/davidwara/gta6-cover-art/rank.svg)](https://make.fun/bounty/gta6-cover-art-01/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=gta6-cover-art-01)
 [![reward](https://make.fun/badge/gta6-cover-art-01/davidwara/gta6-cover-art/reward.svg)](https://make.fun/bounty/gta6-cover-art-01?utm_source=github&utm_medium=readme&utm_campaign=gta6-cover-art-01)
 
-**Vice City Nights** — an offline web app that turns your photo and a
+**Vice City Nights v2** — an offline web app that turns your photos and a
 caption into GTA 6-style multi-panel cover art and exports it as a PNG.
 
-Load up to four of your own photos (or the two bundled samples), drop
-them into the poster, square or wide layout, pick a colour grade — Vice
-Sunset, Neon Night or Palm Gold — slide the sunset glow, crop and position
-each panel by dragging, write your title and subtitle, and export a
-1080×1080, 1080×1350 or 1920×1080 PNG ready to post. The cover is drawn
-entirely in code: retro sun with slits, palm silhouettes, halftone dots,
+Load up to six of your own photos (or the two bundled samples), drop them
+into the poster, square, wide or story layout, pick a colour grade — Vice
+Sunset, Neon Night, Palm Gold, Ocean Drive, Midnight Vice or Bubblegum —
+slide the sunset glow, grain, vignette and halftone, toggle the retro sun,
+skyline, badges and neon border, crop and position each panel by dragging,
+try a per-panel photo filter, write your title and subtitle (or tap a
+caption preset), try a one-click Look or hit Surprise me — and export a
+1080×1080, 1080×1350, 1920×1080 or 1080×1920 PNG at 1× or 2×, ready to
+post. The cover is drawn entirely in code: retro sun with slits, palm
+silhouettes, a lit skyline, a low-rider, birds, stars, halftone dots,
 grain and a tilted title ribbon. Photos are read on your machine and never
 uploaded; the app makes no network request at all.
 

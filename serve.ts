@@ -1,18 +1,12 @@
-// Vice City Nights — tiny static server for app/ (Node 22, stdlib only).
-// Usage: node serve.ts [--port 8080]  — serves app/ on http://localhost:8080.
-// Development convenience only; it refuses every path outside app/.
-import { createReadStream, statSync } from 'node:fs';
+// Vice City Nights v2 — tiny static server for app/.
+// Usage: node serve.ts [--port 8080]
+// Serves only files under app/; anything else is refused.
+
 import { createServer } from 'node:http';
-import { extname, join, normalize, resolve, sep } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { readFile } from 'node:fs/promises';
+import { join, resolve, extname } from 'node:path';
 
-const appRoot = resolve(fileURLToPath(new URL('./app', import.meta.url)));
-const argv = process.argv.slice(2);
-const portFlag = argv.indexOf('--port');
-const wanted = portFlag === -1 ? 8080 : Number(argv[portFlag + 1]);
-const port = Number.isInteger(wanted) && wanted > 0 && wanted < 65536 ? wanted : 8080;
-
-const TYPES = {
+const MIME = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
   '.mjs': 'text/javascript; charset=utf-8',
@@ -24,40 +18,36 @@ const TYPES = {
   '.webp': 'image/webp',
   '.svg': 'image/svg+xml',
   '.woff2': 'font/woff2',
-  '.woff': 'font/woff',
   '.ttf': 'font/ttf',
-  '.txt': 'text/plain; charset=utf-8',
 };
 
-createServer((req, res) => {
-  let path;
+const ROOT = resolve(import.meta.dirname, 'app');
+const port = Number(process.argv.find((a) => a.startsWith('--port='))?.split('=')[1] ||
+  process.argv[process.argv.indexOf('--port') + 1] || 8080);
+
+const server = createServer(async (req, res) => {
+  const url = new URL(req.url || '/', 'http://localhost');
+  let path = decodeURIComponent(url.pathname);
+  if (path === '/') path = '/index.html';
+  const file = resolve(join(ROOT, path));
+  if (!file.startsWith(ROOT + '/') && file !== ROOT) {
+    res.writeHead(403, { 'content-type': 'text/plain' });
+    res.end('forbidden\n');
+    console.log(`${req.method} ${url.pathname} -> 403`);
+    return;
+  }
   try {
-    path = decodeURIComponent(new URL(req.url ?? '/', 'http://localhost').pathname);
+    const body = await readFile(file);
+    res.writeHead(200, { 'content-type': MIME[extname(file)] || 'application/octet-stream' });
+    res.end(body);
+    console.log(`${req.method} ${url.pathname} -> 200 (${body.length} bytes)`);
   } catch {
-    res.writeHead(400).end('bad request');
-    return;
+    res.writeHead(404, { 'content-type': 'text/plain' });
+    res.end('not found\n');
+    console.log(`${req.method} ${url.pathname} -> 404`);
   }
-  if (path.endsWith('/')) path += 'index.html';
-  const file = resolve(join(appRoot, normalize(path)));
-  if (file !== appRoot && !file.startsWith(appRoot + sep)) {
-    res.writeHead(403).end('forbidden');
-    return;
-  }
-  let bytes;
-  try {
-    const st = statSync(file);
-    if (!st.isFile()) throw new Error('not a file');
-    bytes = st.size;
-  } catch {
-    res.writeHead(404).end('not found');
-    return;
-  }
-  res.writeHead(200, {
-    'content-type': TYPES[extname(file).toLowerCase()] ?? 'application/octet-stream',
-    'content-length': bytes,
-    'cache-control': 'no-store',
-  });
-  createReadStream(file).pipe(res);
-}).listen(port, '127.0.0.1', () => {
-  console.log(`Vice City Nights on http://localhost:${port}`);
+});
+
+server.listen(port, () => {
+  console.log(`Vice City Nights — http://localhost:${port}`);
 });
