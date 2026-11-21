@@ -1,64 +1,59 @@
-// Vice City Nights v2 — screenshot scenes.
-// `runShot` configures the state from URL params, loads the sample photo,
-// renders once, and signals readiness for the screenshot harness.
+// shots.js — screenshot scene runner for the make.fun capture.
+// Reads the shot params from the URL, loads the sample photos, renders the
+// cover, then raises window.__shotReady so the capture script can shoot.
 
-import { SIZES, LAYOUTS, GRADES, TITLE_STYLES, freshPanels } from './cover.js';
+import { render, loadImage, refreshPanelControls, refreshSlotsUI } from './editor.js';
+import { SIZES, GRADES, freshPanels } from './cover.js';
 
-export async function runShot(shot, query, state, canvas, render) {
-  const q = new URLSearchParams(query);
-  const photo = q.get('photo') || 'pier';
-  const caption = q.get('caption');
-  const size = q.get('size');
-  const layout = q.get('layout');
-  const grade = q.get('grade');
-  const titleStyle = q.get('titleStyle');
-  const subtitle = q.get('subtitle');
+function param(query, key, fallback) {
+  const v = query.get(key);
+  return v === null || v === '' ? fallback : v;
+}
 
-  if (size && SIZES[size]) state.size = size;
-  if (layout && LAYOUTS[layout]) state.layout = layout;
-  if (grade && GRADES[grade]) state.grade = grade;
-  if (titleStyle && TITLE_STYLES[titleStyle]) state.titleStyle = titleStyle;
-  if (caption != null) state.caption = caption;
-  if (subtitle != null) state.subtitle = subtitle;
-  if (q.get('skyline') === '1') state.skylineOn = true;
-  if (q.get('skyline') === '0') state.skylineOn = false;
-  if (q.get('badges') === '0') state.badgesOn = false;
-  if (q.get('sun') === '0') state.sunOn = false;
-  if (q.get('border')) state.border = Number(q.get('border'));
-  if (q.get('halftone')) state.halftone = Number(q.get('halftone'));
-  if (q.get('glow')) state.glow = Number(q.get('glow'));
+export async function runShot(shot, query, state, canvas, rerender) {
+  const photo = param(query, 'photo', 'pier');
+  const caption = param(query, 'caption', 'Sunset Heist');
+  const size = param(query, 'size', '1080x1350');
+  const layout = param(query, 'layout', 'poster');
+  const grade = param(query, 'grade', 'vice');
+  const titleStyle = param(query, 'titleStyle', 'sunset');
+  const subtitle = param(query, 'subtitle', 'VICE CITY · EST. 2026');
+  const skyline = query.get('skyline') === '1';
+  const badges = query.get('badges') !== '0';
+  const border = Number(param(query, 'border', '0')) || 0;
+  const sun = query.get('sun') !== '0';
+  const halftone = query.get('halftone');
+  const gradeKey = grade in GRADES ? grade : 'vice';
 
-  const s = SIZES[state.size];
-  canvas.width = s.w;
-  canvas.height = s.h;
+  state.size = size in SIZES ? size : '1080x1350';
+  state.layout = layout;
+  state.grade = gradeKey;
+  state.titleStyle = titleStyle;
+  state.caption = decodeURIComponent(caption);
+  state.subtitle = decodeURIComponent(subtitle);
+  state.skylineOn = skyline;
+  state.badgesOn = badges;
+  state.border = border;
+  state.sunOn = sun;
+  if (halftone !== null) state.halftone = Number(halftone);
 
-  // Load the requested sample photo into slot 0 (hero).
-  const img = new Image();
-  await new Promise((resolve) => {
-    img.onload = resolve;
-    img.onerror = resolve;
-    img.src = `./samples/${photo}.jpg`;
-  });
-  if (img.naturalWidth) {
-    state.photos[0] = { img, url: `./samples/${photo}.jpg`, name: `${photo}.jpg` };
-    // Fill a second slot with the other sample so multi-panel shots look full.
-    const other = photo === 'pier' ? 'boulevard' : 'pier';
-    const img2 = new Image();
-    await new Promise((resolve) => {
-      img2.onload = resolve;
-      img2.onerror = resolve;
-      img2.src = `./samples/${other}.jpg`;
-    });
-    if (img2.naturalWidth) {
-      state.photos[1] = { img: img2, url: `./samples/${other}.jpg`, name: `${other}.jpg` };
-    }
-  }
-  state.panels = freshPanels(state.layout, state.photos.filter(Boolean).length);
+  // Load the requested sample as the hero photo, the other sample as slot 2.
+  const hero = await loadImage(`./samples/${photo}.jpg`);
+  const other = await loadImage(`./samples/${photo === 'pier' ? 'boulevard' : 'pier'}.jpg`);
+  state.photos[0] = hero;
+  state.photos[1] = other;
+  state.heroSlot = 0;
+
+  state.panels = freshPanels(state.layout, 2);
+  state.panels[0].photoIndex = 0;
+  if (state.onePhotoAll) state.panels.forEach((p) => { p.photoIndex = 0; });
 
   if (shot === 'cover') document.body.classList.add('shot-cover');
 
-  try { await document.fonts.ready; } catch { /* font already usable */ }
-  render();
+  await document.fonts.ready;
+  rerender();
+  refreshSlotsUI(state);
+  refreshPanelControls(state);
   await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
   window.__shotReady = true;
 }

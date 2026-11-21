@@ -4,47 +4,40 @@
 [![rank](https://make.fun/badge/gta6-cover-art-01/davidwara/gta6-cover-art/rank.svg)](https://make.fun/bounty/gta6-cover-art-01/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=gta6-cover-art-01)
 [![reward](https://make.fun/badge/gta6-cover-art-01/davidwara/gta6-cover-art/reward.svg)](https://make.fun/bounty/gta6-cover-art-01?utm_source=github&utm_medium=readme&utm_campaign=gta6-cover-art-01)
 
-**Vice City Nights v2** — an offline web app that turns your photos and a
-caption into GTA 6-style multi-panel cover art and exports it as a PNG.
+## Vice City Nights
 
-Load up to six of your own photos (or the two bundled samples), drop them
-into the poster, square, wide or story layout, pick a colour grade — Vice
-Sunset, Neon Night, Palm Gold, Ocean Drive, Midnight Vice or Bubblegum —
-slide the sunset glow, grain, vignette and halftone, toggle the retro sun,
-skyline, badges and neon border, crop and position each panel by dragging,
-try a per-panel photo filter, write your title and subtitle (or tap a
-caption preset), try a one-click Look or hit Surprise me — and export a
-1080×1080, 1080×1350, 1920×1080 or 1080×1920 PNG at 1× or 2×, ready to
-post. The cover is drawn entirely in code: retro sun with slits, palm
-silhouettes, a lit skyline, a low-rider, birds, stars, halftone dots,
-grain and a tilted title ribbon. Photos are read on your machine and never
-uploaded; the app makes no network request at all.
+An offline web app that turns your photos + caption into GTA 6-style
+multi-panel cover art and exports it as a PNG. 100% static files under
+`app/`, no network request, no build step. Photos are read on your machine
+and never uploaded.
 
-## Run it
+### v2 features
+
+- **4 sizes** — 1080×1080 Square, 1080×1350 Poster, 1920×1080 Wide, 1080×1920 Story
+- **6 layouts** — poster, six (7 panels incl. Palm row), square, wide, strip, story
+- **6 colour grades** — Vice Sunset, Neon Night, Palm Gold, Ocean Drive, Midnight Vice, Bubblegum
+- **6 title styles** — sunset, vice, neon, chrome, outline, bubble
+- **Decorations** — retro sun, palm silhouettes, skyline, low-rider car (wide layout),
+  birds, stars (neon / midnight), halftone dots, film grain, vignette, neon frame,
+  VI + EST. 2026 badges
+- **6 photo slots** — add your own photos, star one as the hero, one-photo-fills-all mode
+- **Per-panel control** — zoom / position sliders, drag on canvas, scroll to zoom,
+  photo filters (None / B&W / Sepia / Cool), Fit / Fill, panel swap, keyboard shortcuts
+- **Caption presets** (6) and **Look presets** (4) plus a Randomize ("Surprise me") button
+- **PNG export** at 1× or 2× in the exact post size you picked
+
+## Try it
 
 ```sh
 node serve.ts
+# open http://localhost:8080
 ```
-
-Then open http://localhost:8080
-
-No build step, no dependencies — plain static files under `app/`.
 
 ## Screenshots
 
-![Cover](screenshots/1-cover.jpg)
-![Editor](screenshots/2-editor.jpg)
-![Square cover](screenshots/3-cover-square.jpg)
-![Portrait cover](screenshots/4-cover-portrait.jpg)
-
-## Notes
-
-- Original art only: no Rockstar Games logo, wordmark, official artwork,
-  character or font. The display font is Bebas Neue (SIL OFL 1.1, see
-  `app/fonts/FONT-LICENSE.txt`).
-- Sample photos are free to use and ship with the app.
+See `screenshots/` — cover (wide, six-panel, Ocean Drive), the editor,
+a square Neon Reign cover, and a portrait Bubblegum cover.
 
 ---
 
-Built for the make.fun bounty
-[gta6-cover-art-01](https://make.fun/bounty/gta6-cover-art-01?ref=davidwara).
+Built for the [gta6-cover-art-01 bounty on make.fun](https://make.fun/bounty/gta6-cover-art-01?ref=davidwara).

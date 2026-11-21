@@ -1,37 +1,32 @@
-// Vice City Nights v2 — boot.
-// Creates the state, wires the editor, renders the cover. In shot mode
-// (?shot=cover|editor) it runs the screenshot scene instead of the
-// interactive editor defaults.
+// main.js — Vice City Nights v2 boot.
+// Creates the state, wires the editor, renders; in shot mode runs the shot
+// scene instead of the default sample load.
 
-import { SIZES, drawCover } from './cover.js';
-import { createState, initEditor, loadSamplePhotos } from './editor.js';
+import { createState, initEditor, render, loadSamplePhotos, refreshPanelControls, refreshSlotsUI } from './editor.js';
 import { runShot } from './shots.js';
 
 const canvas = document.getElementById('cover');
 const state = createState();
 
-function render() {
-  const size = SIZES[state.size];
-  if (canvas.width !== size.w) canvas.width = size.w;
-  if (canvas.height !== size.h) canvas.height = size.h;
-  const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  drawCover(ctx, state, canvas.width, canvas.height);
-}
+initEditor(state, canvas);
 
-const editor = initEditor(state, canvas, render);
+const query = new URLSearchParams(window.location.search);
+const shot = query.get('shot');
 
-const params = new URLSearchParams(location.search);
-const shot = params.get('shot');
 if (shot) {
-  runShot(shot, location.search, state, canvas, render).then(() => {
-    editor.refreshSlots();
-    editor.refreshPanelNote();
+  runShot(shot, query, state, canvas, () => render(state, canvas)).catch((err) => {
+    console.error('shot failed', err);
+    window.__shotReady = true;
   });
 } else {
-  loadSamplePhotos(state).then(() => {
-    editor.refreshSlots();
-    editor.refreshPanelNote();
-    return document.fonts ? document.fonts.ready : Promise.resolve();
-  }).then(() => render());
+  loadSamplePhotos(state)
+    .then(() => {
+      refreshSlotsUI(state);
+      refreshPanelControls(state);
+      render(state, canvas);
+    })
+    .catch((err) => {
+      console.error('sample photos failed', err);
+      render(state, canvas);
+    });
 }

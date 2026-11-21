@@ -1,4 +1,11 @@
-Display font: Bebas Neue, by Dharma Type, licensed under the SIL Open Font
-License 1.1. Source: @fontsource/bebas-neue (file
-bebas-neue-latin-400-normal.woff2). No Rockstar Games font, logo or artwork
-is used anywhere in this app.
+Font license
+============
+
+The display typeface used by this app is Bebas Neue, designed by Dharma
+Type and released under the SIL Open Font License 1.1. The webfont file
+(bebas-neue-latin-400-normal.woff2) comes from the @fontsource/bebas-neue
+package (v5.2.5) via jsDelivr.
+
+No Rockstar Games font, logo, artwork, or trademark is used anywhere in
+this app. All cover art is generated from the user's own photos plus
+original vector decorations drawn in code.
